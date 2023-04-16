@@ -10,6 +10,7 @@ import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
 import ru.netology.nmedia.entity.toDto
 import ru.netology.nmedia.entity.toEntity
+import ru.netology.nmedia.entity.toEntityInitial
 import ru.netology.nmedia.error.ApiError
 import ru.netology.nmedia.error.AppError
 import ru.netology.nmedia.error.NetworkError
@@ -27,9 +28,12 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
             }
-
             val body = response.body() ?: throw ApiError(response.code(), response.message())
-            dao.insert(body.toEntity())
+            if (dao.isEmpty()){
+                dao.insert(body.toEntityInitial())
+            } else{
+                dao.insert(body.toEntity())
+            }
         } catch (e: IOException) {
             throw NetworkError
         } catch (e: Exception) {
@@ -40,14 +44,13 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
     override fun getNewerCount(id: Long): Flow<Int> = flow {
         while (true) {
             delay(10_000L)
-            val response = PostsApi.service.getNewer(id)
+            val response = PostsApi.service.getNewer(id + dao.getIsNewCount())
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
             }
-
             val body = response.body() ?: throw ApiError(response.code(), response.message())
             dao.insert(body.toEntity())
-            emit(body.size)
+            emit(dao.getIsNewCount())
         }
     }
         .catch { e -> throw AppError.from(e) }
@@ -59,7 +62,6 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
             }
-
             val body = response.body() ?: throw ApiError(response.code(), response.message())
             dao.insert(PostEntity.fromDto(body))
         } catch (e: IOException) {
@@ -69,6 +71,10 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
         }
     }
 
+    override suspend fun update(){
+        dao.update()
+    }
+
     override suspend fun removeById(id: Long) {
         TODO("Not yet implemented")
     }
@@ -76,4 +82,6 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
     override suspend fun likeById(id: Long) {
         TODO("Not yet implemented")
     }
+
+
 }

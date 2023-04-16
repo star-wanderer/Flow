@@ -4,10 +4,9 @@ import android.app.Application
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import okhttp3.internal.wait
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
@@ -15,7 +14,7 @@ import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.SingleLiveEvent
-import kotlin.coroutines.EmptyCoroutineContext
+
 
 private val empty = Post(
     id = 0,
@@ -41,9 +40,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         get() = _dataState
 
     val newerCount: LiveData<Int> = data.switchMap {
-        repository.getNewerCount(it.posts.firstOrNull()?.id ?: 0L)
-            .catch { e -> e.printStackTrace() }
-            .asLiveData(Dispatchers.Default)
+            repository.getNewerCount(it.posts.firstOrNull()?.id ?: 0L)
+                .catch { e -> e.printStackTrace() }
+                .asLiveData(Dispatchers.Default)
     }
 
     private val edited = MutableLiveData(empty)
@@ -53,6 +52,14 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         loadPosts()
+    }
+
+    fun updatePosts() = viewModelScope.launch {
+        try {
+            repository.update()
+        } catch (e: Exception) {
+            _dataState.value = FeedModelState(error = true)
+        }
     }
 
     fun loadPosts() = viewModelScope.launch {

@@ -1,26 +1,31 @@
 package ru.netology.nmedia.activity
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.delay
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewmodel.PostViewModel
+import kotlin.concurrent.thread
 
 class FeedFragment : Fragment() {
 
     private val viewModel: PostViewModel by activityViewModels()
 
+    @SuppressLint("SetTextI18n")
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -63,17 +68,32 @@ class FeedFragment : Fragment() {
                     .show()
             }
         }
+
         viewModel.data.observe(viewLifecycleOwner) { state ->
             adapter.submitList(state.posts)
             binding.emptyText.isVisible = state.empty
         }
+
         viewModel.newerCount.observe(viewLifecycleOwner) { state ->
-            // TODO: just log it, interaction must be in homework
-            println(state)
+            if (state != 0){
+                binding.newPosts.text = context?.resources?.getString(R.string.new_post) + ":" + state
+                binding.newPosts.isVisible = true
+            }
+            println("Retrieved count: $state")
+        }
+
+        viewModel.newerCount.observe(viewLifecycleOwner) { state ->
+            println("Cached count: $state")
         }
 
         binding.swiperefresh.setOnRefreshListener {
             viewModel.refreshPosts()
+        }
+
+        binding.newPosts.setOnClickListener {
+            viewModel.updatePosts()
+            binding.list.smoothScrollToPosition(0)
+            it.isVisible = false
         }
 
         binding.fab.setOnClickListener {
