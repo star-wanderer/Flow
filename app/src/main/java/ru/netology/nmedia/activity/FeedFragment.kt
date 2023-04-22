@@ -14,6 +14,7 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.delay
 import ru.netology.nmedia.R
+import ru.netology.nmedia.activity.ViewPostFragment.Companion.ARG_POST_ID
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
@@ -34,6 +35,16 @@ class FeedFragment : Fragment() {
         val binding = FragmentFeedBinding.inflate(inflater, container, false)
 
         val adapter = PostsAdapter(object : OnInteractionListener {
+
+            override fun onPostImage(post: Post) {
+                findNavController().navigate(
+                    R.id.action_feedFragment_to_viewPostFragment,
+                    Bundle().apply {
+                        ARG_POST_ID = post.id.toString()
+                    }
+                )
+            }
+
             override fun onEdit(post: Post) {
                 viewModel.edit(post)
             }
