@@ -21,4 +21,6 @@
     <string name="channel_remote_name">Server notifications</string>
     <string name="channel_remote_description">Notifications from remote server</string>
     <string name="new_post">New Posts Available</string>
+    <string name="remove">Remove</string>
+    <string name="image_description">Your advertisment might be here!</string>
 </resources>

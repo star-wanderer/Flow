@@ -10,7 +10,8 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="@dimen/common_spacing">
+        android:padding="@dimen/common_spacing"
+        >
 
         <ImageView
             android:id="@+id/avatar"
@@ -21,7 +22,8 @@
             app:layout_constraintBottom_toBottomOf="@id/header"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:srcCompat="@sample/posts.json/data/authorAvatar" />
+            tools:srcCompat="@sample/posts.json/data/authorAvatar"
+            />
 
         <TextView
             android:id="@+id/author"
@@ -36,7 +38,8 @@
             app:layout_constraintStart_toEndOf="@id/avatar"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_chainStyle="packed"
-            tools:text="@sample/posts.json/data/author" />
+            tools:text="@sample/posts.json/data/author"
+            />
 
         <TextView
             android:id="@+id/published"
@@ -49,7 +52,8 @@
             app:layout_constraintEnd_toStartOf="@id/menu"
             app:layout_constraintStart_toEndOf="@id/avatar"
             app:layout_constraintTop_toBottomOf="@id/author"
-            tools:text="@sample/posts.json/data/published" />
+            tools:text="@sample/posts.json/data/published"
+            />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/menu"
@@ -68,7 +72,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:barrierDirection="bottom"
-            app:constraint_referenced_ids="avatar,published,menu" />
+            app:constraint_referenced_ids="avatar,published,menu"
+            />
 
         <TextView
             android:id="@+id/content"
@@ -81,14 +86,28 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/header"
-            tools:text="@sample/posts.json/data/content" />
+            tools:text="@sample/posts.json/data/content"
+            />
+
+        <ImageView
+            android:id="@+id/image"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/common_spacing"
+            android:contentDescription="@string/image_description"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/content"
+            tools:srcCompat="@sample/posts.json/data/authorAvatar"
+            />
 
         <androidx.constraintlayout.widget.Barrier
             android:id="@+id/footer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:barrierDirection="bottom"
-            app:constraint_referenced_ids="content" />
+            app:constraint_referenced_ids="image"
+            />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/like"
