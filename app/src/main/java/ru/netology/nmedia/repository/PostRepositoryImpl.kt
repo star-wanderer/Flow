@@ -20,6 +20,7 @@ import ru.netology.nmedia.error.ApiError
 import ru.netology.nmedia.error.AppError
 import ru.netology.nmedia.error.NetworkError
 import ru.netology.nmedia.error.UnknownError
+import ru.netology.nmedia.model.AuthModel
 import java.io.File
 import java.io.IOException
 
@@ -27,6 +28,24 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
     override val data = dao.getAll()
         .map(List<PostEntity>::toDto)
         .flowOn(Dispatchers.Default)
+
+    private val _authData = MutableLiveData<AuthModel>()
+    override val authData: LiveData<AuthModel>
+        get() = _authData
+
+    override suspend fun authenticate(login: String, password: String) {
+        try{
+            val response = PostsApi.service.authenticate(login, password)
+            if (!response.isSuccessful) {
+                throw ApiError(response.code(), response.message())
+            }
+            _authData.value = response.body() ?: throw ApiError(response.code(), response.message())
+        } catch (e: IOException) {
+            throw NetworkError
+        } catch (e: Exception) {
+            throw UnknownError
+        }
+    }
 
     override suspend fun getAll() {
         try {

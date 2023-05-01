@@ -23,4 +23,12 @@
     <string name="new_post">New Posts Available</string>
     <string name="remove">Remove</string>
     <string name="image_description">Your advertisment might be here!</string>
+    <string name="singnout">singnOut</string>
+    <string name="signin">signIn</string>
+    <string name="signup">signUp</string>
+    <string name="enter">enter</string>
+    <string name="login">login</string>
+    <string name="password">password</string>
+    <string name="logout">logout</string>
+    <string name="auth_dialog_question">Are you sure you want to log out?</string>
 </resources>

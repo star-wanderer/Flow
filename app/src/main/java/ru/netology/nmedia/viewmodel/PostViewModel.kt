@@ -4,9 +4,12 @@ import android.app.Application
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.annotations.NotNull
+import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
@@ -16,7 +19,6 @@ import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.SingleLiveEvent
 
-
 private val empty = Post(
     id = 0,
     content = "",
@@ -25,8 +27,8 @@ private val empty = Post(
     likedByMe = false,
     likes = 0,
     published = "",
-    attachment = null
-
+    attachment = null,
+    authorId = 0,
 )
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
@@ -34,8 +36,15 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: PostRepository =
         PostRepositoryImpl(AppDb.getInstance(context = application).postDao())
 
-    val data: LiveData<FeedModel> = repository.data
-        .map(::FeedModel)
+    val data: LiveData<FeedModel> = AppAuth.getInstance().authStateFlow.flatMapLatest { (id, _ ) ->
+        repository.data
+            .map { posts ->
+                FeedModel (
+                    posts.map { post -> post.copy(ownedByMe = post.authorId == id ) },
+                    posts.isEmpty()
+                )
+            }
+    }
         .asLiveData(Dispatchers.Default)
 
     private val _photoState = MutableLiveData<PhotoModel?>()
@@ -90,7 +99,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun save() {
-        println("Save!")
         edited.value?.let {
             _postCreated.value = Unit
             viewModelScope.launch {
