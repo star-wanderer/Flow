@@ -8,17 +8,14 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
+import ru.netology.nmedia.R
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.FragmentAuthenticateBinding
 import ru.netology.nmedia.model.AuthModel
-import ru.netology.nmedia.util.StringArg
+import ru.netology.nmedia.model.CredsModel
 import ru.netology.nmedia.viewmodel.UserAuthModel
-
 class AuthorizationFragment : Fragment() {
-
-    companion object {
-        var Bundle.ARG_AUTH_MODE: String? by StringArg
-    }
 
     private val userAuthViewModel: UserAuthModel by viewModels()
 
@@ -34,43 +31,25 @@ class AuthorizationFragment : Fragment() {
             false
         )
 
-        "student".let(binding.login::setText)
-        "secret".let(binding.password::setText)
+        userAuthViewModel.authData.observe(viewLifecycleOwner){ authModel ->
+            AppAuth.getInstance().setUser(AuthModel(authModel.id,authModel.token))
+            findNavController().navigateUp()
+        }
 
-        arguments?.let{
-                if (("login") == it.ARG_AUTH_MODE.toString()){
-                    binding.authDialogText.isVisible = false
-                    binding.authDialogYes.isVisible = false
-                    binding.authDialogNo.isVisible = false
-
-                } else {
-                    binding.authDialogText.isVisible = true
-                    binding.authDialogYes.isVisible = true
-                    binding.authDialogNo.isVisible = true
-                    binding.enter.isVisible = false
-                    binding.loginTitle.isVisible = false
-                    binding.login.isVisible = false
-                    binding.passwordTitle.isVisible = false
-                    binding.password.isVisible = false
-                }
+        userAuthViewModel.authDataState.observe(viewLifecycleOwner) { authModelState ->
+            binding.progress.isVisible = authModelState.authenticating
+            if (authModelState.error) {
+                Snackbar.make(binding.root, R.string.error_authenticating, Snackbar.LENGTH_LONG)
+                    .setAction(R.string.retry_loading) { userAuthViewModel.authenticate() }
+                    .show()
             }
-
-            userAuthViewModel.authData.observe(viewLifecycleOwner){
-            AppAuth.getInstance().setUser(AuthModel(it.id,it.token))
-            findNavController().navigateUp()
         }
 
-        binding.authDialogYes.setOnClickListener{
-            AppAuth.getInstance().removeUser()
-            findNavController().navigateUp()
-        }
-
-        binding.authDialogNo.setOnClickListener{
-            findNavController().navigateUp()
-        }
-
-        binding.enter.setOnClickListener {
-            userAuthViewModel.authenticate("student","secret")
+            binding.enter.setOnClickListener {
+            userAuthViewModel.saveCreds(CredsModel(
+                binding.login.text.toString(),
+                binding.password.text.toString()))
+            userAuthViewModel.authenticate()
         }
         return binding.root
     }

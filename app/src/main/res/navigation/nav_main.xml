@@ -23,6 +23,9 @@
         <action
             android:id="@+id/action_feedFragment_to_authorizationFragment"
             app:destination="@id/authorizationFragment" />
+        <action
+            android:id="@+id/action_feedFragment_to_unAuthorizationFragment"
+            app:destination="@id/unAuthorizationFragment" />
     </fragment>
     <fragment
         android:id="@+id/newPostFragment"
@@ -39,6 +42,14 @@
         android:label="AuthorizationFragment" >
         <action
             android:id="@+id/action_authorizationFragment_to_feedFragment"
+            app:destination="@id/feedFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/unAuthorizationFragment"
+        android:name="ru.netology.nmedia.activity.UnAuthorizationFragment"
+        android:label="UnAuthorizationFragment" >
+        <action
+            android:id="@+id/action_unAuthorizationFragment_to_feedFragment"
             app:destination="@id/feedFragment" />
     </fragment>
 </navigation>

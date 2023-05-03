@@ -16,6 +16,7 @@
     <string name="retry_loading">Повторить</string>
     <string name="empty_posts">Постов нет.\nЕсли создадите новый пост, то он появится здесь</string>
     <string name="error_loading">Не удалось загрузить данные</string>
+    <string name="error_authenticating">Ошибка Аутентификации</string>
     <string name="save">Сохранить</string>
     <string name="google_play_unavailable">Google Api Недоступно</string>
     <string name="notification_user_liked">%1$s поставил лайк посту %2$s</string>
@@ -23,13 +24,19 @@
     <string name="channel_remote_description">Уведомления с удалённого сервера</string>
     <string name="new_post">Новые Посты</string>
     <string name="remove">Удалить</string>
-    <string name="image_description">Здесь могла бы быть ваша реклама!</string>
-    <string name="singnout">singnOut</string>
-    <string name="signin">singnIn</string>
-    <string name="signup">signUp</string>
-    <string name="enter">enter</string>
-    <string name="login">login</string>
-    <string name="password">password</string>
-    <string name="logout">logout</string>
-    <string name="auth_dialog_question">are you sure you want to log out?</string>
+    <string name="image_description">Описание изображения</string>
+    <string name="singnout">Выйти из акаунта</string>
+    <string name="signin">Войти в акаунт</string>
+    <string name="signup">Регистрация</string>
+    <string name="enter">Ввод</string>
+    <string name="login">Логин</string>
+    <string name="password">Пароль</string>
+    <string name="logout">Выйти</string>
+    <string name="login_hint">Подсказка к логину</string>
+    <string name="auth_dialog_question">Вы уверены что хотите выйти?</string>
+    <string name="password_hint">Подсказка к паролю</string>
+    <string name="yes">Confirm Log Out</string>
+    <string name="no">Reject Log Out</string>
+    <string name="enter_password_here">Enter password here</string>
+    <string name="enter_login_here">Enter login here</string>
 </resources>

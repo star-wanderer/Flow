@@ -11,11 +11,9 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.R
-import ru.netology.nmedia.activity.AuthorizationFragment.Companion.ARG_AUTH_MODE
 import ru.netology.nmedia.activity.ViewPostFragment.Companion.ARG_POST_ID
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
-import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewmodel.AppAuthModel
@@ -90,7 +88,6 @@ class FeedFragment : Fragment() {
                         R.id.signIn -> {
                             findNavController().navigate(
                                 R.id.action_feedFragment_to_authorizationFragment,
-                                Bundle().apply { ARG_AUTH_MODE = "login" }
                             )
                             true
                         }
@@ -100,8 +97,7 @@ class FeedFragment : Fragment() {
                         }
                         R.id.signOut -> {
                             findNavController().navigate(
-                                R.id.action_feedFragment_to_authorizationFragment,
-                                Bundle().apply { ARG_AUTH_MODE = "logout" }
+                                R.id.action_feedFragment_to_unAuthorizationFragment,
                             )
                             true
                         }
