@@ -12,6 +12,7 @@ import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.AuthModel
+import ru.netology.nmedia.model.PushToken
 
 private const val BASE_URL = "${BuildConfig.BASE_URL}/api/slow/"
 
@@ -40,7 +41,7 @@ private val retrofit = Retrofit.Builder()
     .client(okhttp)
     .build()
 
-interface PostsApiService {
+interface ApiService {
     @GET("posts")
     suspend fun getAll(): Response<List<Post>>
 
@@ -69,10 +70,13 @@ interface PostsApiService {
     @FormUrlEncoded
     @POST("users/authentication")
     suspend fun authenticate(@Field("login") login: String, @Field("pass") pass: String): Response<AuthModel>
+
+    @POST("users/push-tokens")
+    suspend fun save(@Body pushToken: PushToken): Response<Unit>
 }
 
-object PostsApi {
-    val service: PostsApiService by lazy {
-        retrofit.create(PostsApiService::class.java)
+object Api {
+    val service: ApiService by lazy {
+        retrofit.create(ApiService::class.java)
     }
 }

@@ -20,6 +20,8 @@
     <string name="save">Сохранить</string>
     <string name="google_play_unavailable">Google Api Недоступно</string>
     <string name="notification_user_liked">%1$s поставил лайк посту %2$s</string>
+    <string name="notification_broadcast_push">Получено широковещательное Пуш-сообщение</string>
+    <string name="notification_personal_push">Получено персональное Пуш-сообщение</string>
     <string name="channel_remote_name">Уведомления с сервера</string>
     <string name="channel_remote_description">Уведомления с удалённого сервера</string>
     <string name="new_post">Новые Посты</string>

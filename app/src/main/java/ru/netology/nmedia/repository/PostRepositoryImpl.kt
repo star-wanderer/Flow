@@ -35,7 +35,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
     override suspend fun authenticate(login: String, password: String) {
         try{
-            val response = PostsApi.service.authenticate(login, password)
+            val response = Api.service.authenticate(login, password)
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
             }
@@ -49,7 +49,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
     override suspend fun getAll() {
         try {
-            val response = PostsApi.service.getAll()
+            val response = Api.service.getAll()
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
             }
@@ -69,7 +69,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
     override suspend fun saveWithAttachment(file: File, post: Post) {
         try {
             val media = upload(file)
-            val response = PostsApi.service.save(post.copy(attachment = Attachment(url = media.id, AttachmentType.IMAGE)))
+            val response = Api.service.save(post.copy(attachment = Attachment(url = media.id, AttachmentType.IMAGE)))
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
             }
@@ -83,14 +83,14 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
     }
 
     private suspend fun upload(file: File): Media{
-        return PostsApi.service.upload(MultipartBody.Part.createFormData("file", file.name, file.asRequestBody()))
+        return Api.service.upload(MultipartBody.Part.createFormData("file", file.name, file.asRequestBody()))
             .let{ requireNotNull(it.body()) }
     }
 
     override fun getNewerCount(id: Long): Flow<Int> = flow {
         while (true) {
             delay(10_000L)
-            val response = PostsApi.service.getNewer(id + dao.getIsNewCount())
+            val response = Api.service.getNewer(id + dao.getIsNewCount())
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
             }
@@ -104,7 +104,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
     override suspend fun save(post: Post) {
         try {
-            val response = PostsApi.service.save(post)
+            val response = Api.service.save(post)
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
             }
