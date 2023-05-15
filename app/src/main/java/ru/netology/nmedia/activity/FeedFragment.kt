@@ -10,6 +10,8 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.ViewPostFragment.Companion.ARG_POST_ID
 import ru.netology.nmedia.adapter.OnInteractionListener
@@ -19,7 +21,8 @@ import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewmodel.AppAuthModel
 import ru.netology.nmedia.viewmodel.PostViewModel
 
-
+@AndroidEntryPoint
+@ExperimentalCoroutinesApi
 class FeedFragment : Fragment() {
 
     private val viewModel: PostViewModel by activityViewModels()
@@ -48,7 +51,7 @@ class FeedFragment : Fragment() {
             }
 
             override fun onLike(post: Post) {
-                if (!authViewModel.isAuthorized){
+                if (!authViewModel.isAuthorized) {
                     findNavController().navigate(R.id.action_feedFragment_to_authorizationFragment)
                 } else {
                     viewModel.likeById(post.id)
@@ -74,17 +77,18 @@ class FeedFragment : Fragment() {
 
         var currentMenuProvider: MenuProvider? = null
 
-        authViewModel.authLiveData.observe(viewLifecycleOwner){
+        authViewModel.authLiveData.observe(viewLifecycleOwner) {
 
-            currentMenuProvider?.let {requireActivity().removeMenuProvider(it)}
+            currentMenuProvider?.let { requireActivity().removeMenuProvider(it) }
             requireActivity().addMenuProvider(object : MenuProvider {
                 override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                     menuInflater.inflate(R.menu.auth_menu, menu)
                     menu.setGroupVisible(R.id.authorized, authViewModel.isAuthorized)
                     menu.setGroupVisible(R.id.unauthorized, !authViewModel.isAuthorized)
                 }
+
                 override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                    return when (menuItem.itemId){
+                    return when (menuItem.itemId) {
                         R.id.signIn -> {
                             findNavController().navigate(
                                 R.id.action_feedFragment_to_authorizationFragment,
@@ -96,6 +100,7 @@ class FeedFragment : Fragment() {
                             true
                         }
                         R.id.signOut -> {
+                            println("Going to quit!")
                             findNavController().navigate(
                                 R.id.action_feedFragment_to_unAuthorizationFragment,
                             )
@@ -124,8 +129,9 @@ class FeedFragment : Fragment() {
         }
 
         viewModel.newerCount.observe(viewLifecycleOwner) { state ->
-            if (state != 0){
-                binding.newPosts.text = context?.resources?.getString(R.string.new_post) + ":" + state
+            if (state != 0) {
+                binding.newPosts.text =
+                    context?.resources?.getString(R.string.new_post) + ":" + state
                 binding.newPosts.isVisible = true
             }
             println("Retrieved count: $state")
@@ -146,10 +152,10 @@ class FeedFragment : Fragment() {
         }
 
         binding.fab.setOnClickListener {
-            if (!authViewModel.isAuthorized){
+            if (!authViewModel.isAuthorized) {
                 findNavController().navigate(R.id.action_feedFragment_to_authorizationFragment)
-            }
-            else {findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+            } else {
+                findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
             }
         }
         return binding.root

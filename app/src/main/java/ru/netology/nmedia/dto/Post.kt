@@ -18,7 +18,7 @@ data class Attachment(
     val type: AttachmentType
 )
 
-enum class AttachmentType{
+enum class AttachmentType {
     IMAGE
 }
 

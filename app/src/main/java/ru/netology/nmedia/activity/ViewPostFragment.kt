@@ -6,11 +6,16 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.databinding.FragmentViewPostBinding
 import ru.netology.nmedia.util.StringArg
 import ru.netology.nmedia.view.load
 import ru.netology.nmedia.viewmodel.PostViewModel
+
+@AndroidEntryPoint
+@ExperimentalCoroutinesApi
 class ViewPostFragment : Fragment() {
 
     companion object {
@@ -37,7 +42,7 @@ class ViewPostFragment : Fragment() {
 
             val postId = args.ARG_POST_ID.toString().toLong()
 
-            viewModel.data.observe(viewLifecycleOwner){
+            viewModel.data.observe(viewLifecycleOwner) {
                 it.posts.lastOrNull { it.id == postId }?.let { post ->
                     binding.image.load("${BuildConfig.BASE_URL}/media/${post.attachment?.url}")
                 }
