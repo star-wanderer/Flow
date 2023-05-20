@@ -1,4 +1,4 @@
-package ru.netology.nmedia.activity
+package ru.netology.nmedia.ui
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,10 +8,14 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.paging.LoadState
 import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collectLatest
 import ru.netology.nmedia.R
-import ru.netology.nmedia.activity.ViewPostFragment.Companion.ARG_POST_ID
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
@@ -19,7 +23,8 @@ import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewmodel.AppAuthModel
 import ru.netology.nmedia.viewmodel.PostViewModel
 
-
+@AndroidEntryPoint
+@ExperimentalCoroutinesApi
 class FeedFragment : Fragment() {
 
     private val viewModel: PostViewModel by activityViewModels()
@@ -34,21 +39,12 @@ class FeedFragment : Fragment() {
 
         val adapter = PostsAdapter(object : OnInteractionListener {
 
-            override fun onPostImage(post: Post) {
-                findNavController().navigate(
-                    R.id.action_feedFragment_to_viewPostFragment,
-                    Bundle().apply {
-                        ARG_POST_ID = post.id.toString()
-                    }
-                )
-            }
-
             override fun onEdit(post: Post) {
                 viewModel.edit(post)
             }
 
             override fun onLike(post: Post) {
-                if (!authViewModel.isAuthorized){
+                if (!authViewModel.isAuthorized) {
                     findNavController().navigate(R.id.action_feedFragment_to_authorizationFragment)
                 } else {
                     viewModel.likeById(post.id)
@@ -74,17 +70,18 @@ class FeedFragment : Fragment() {
 
         var currentMenuProvider: MenuProvider? = null
 
-        authViewModel.authLiveData.observe(viewLifecycleOwner){
+        authViewModel.authLiveData.observe(viewLifecycleOwner) {
 
-            currentMenuProvider?.let {requireActivity().removeMenuProvider(it)}
+            currentMenuProvider?.let { requireActivity().removeMenuProvider(it) }
             requireActivity().addMenuProvider(object : MenuProvider {
                 override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                     menuInflater.inflate(R.menu.auth_menu, menu)
                     menu.setGroupVisible(R.id.authorized, authViewModel.isAuthorized)
                     menu.setGroupVisible(R.id.unauthorized, !authViewModel.isAuthorized)
                 }
+
                 override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                    return when (menuItem.itemId){
+                    return when (menuItem.itemId) {
                         R.id.signIn -> {
                             findNavController().navigate(
                                 R.id.action_feedFragment_to_authorizationFragment,
@@ -96,6 +93,7 @@ class FeedFragment : Fragment() {
                             true
                         }
                         R.id.signOut -> {
+                            println("Going to quit!")
                             findNavController().navigate(
                                 R.id.action_feedFragment_to_unAuthorizationFragment,
                             )
@@ -118,25 +116,24 @@ class FeedFragment : Fragment() {
             }
         }
 
-        viewModel.data.observe(viewLifecycleOwner) { state ->
-            adapter.submitList(state.posts)
-            binding.emptyText.isVisible = state.empty
-        }
-
-        viewModel.newerCount.observe(viewLifecycleOwner) { state ->
-            if (state != 0){
-                binding.newPosts.text = context?.resources?.getString(R.string.new_post) + ":" + state
-                binding.newPosts.isVisible = true
+        lifecycleScope.launchWhenCreated {
+            viewModel.data.collectLatest {
+                adapter.submitData(it)
             }
-            println("Retrieved count: $state")
         }
 
-        viewModel.newerCount.observe(viewLifecycleOwner) { state ->
-            println("Cached count: $state")
+        lifecycleScope.launchWhenCreated {
+            adapter.loadStateFlow.collectLatest { state ->
+                binding.swiperefresh.isRefreshing =
+                    state.refresh is LoadState.Loading ||
+                    state.prepend is LoadState.Loading ||
+                    state.append is LoadState.Loading
+            }
         }
 
         binding.swiperefresh.setOnRefreshListener {
             viewModel.refreshPosts()
+            adapter.refresh()
         }
 
         binding.newPosts.setOnClickListener {
@@ -146,10 +143,10 @@ class FeedFragment : Fragment() {
         }
 
         binding.fab.setOnClickListener {
-            if (!authViewModel.isAuthorized){
+            if (!authViewModel.isAuthorized) {
                 findNavController().navigate(R.id.action_feedFragment_to_authorizationFragment)
-            }
-            else {findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+            } else {
+                findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
             }
         }
         return binding.root

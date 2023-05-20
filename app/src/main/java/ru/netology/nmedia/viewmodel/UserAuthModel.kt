@@ -1,21 +1,16 @@
 package ru.netology.nmedia.viewmodel
 
-import android.app.Application
 import androidx.lifecycle.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import ru.netology.nmedia.auth.AppAuth
-import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.model.*
 import ru.netology.nmedia.repository.PostRepository
-import ru.netology.nmedia.repository.PostRepositoryImpl
+import javax.inject.Inject
 
-class UserAuthModel(application: Application) : AndroidViewModel(application) {
-    private val repository: PostRepository =
-        PostRepositoryImpl(AppDb.getInstance(context = application).postDao())
+@HiltViewModel
+class UserAuthModel @Inject constructor(
+    private val repository: PostRepository,
+) : ViewModel() {
 
     private var creds: CredsModel = CredsModel()
 
@@ -37,7 +32,7 @@ class UserAuthModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun saveCreds(userCreds: CredsModel){
+    fun saveCreds(userCreds: CredsModel) {
         creds = userCreds
     }
 }

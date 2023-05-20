@@ -12,16 +12,21 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.auth.AppAuth
+import javax.inject.Inject
 import kotlin.random.Random
 
-
+@AndroidEntryPoint
 class FCMService : FirebaseMessagingService() {
     private val action = "action"
     private val content = "content"
     private val channelId = "remote"
     private val gson = Gson()
+
+    @Inject
+    lateinit var appAuth: AppAuth
 
     override fun onCreate() {
         super.onCreate()
@@ -39,7 +44,7 @@ class FCMService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
         println("New token detected:$token")
-        AppAuth.getInstance().sendPushToken(token)
+        appAuth.sendPushToken(token)
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
@@ -47,16 +52,16 @@ class FCMService : FirebaseMessagingService() {
         gson.fromJson(message.data[content], Push::class.java).let {
             when (it.recipientId) {
                 null -> handlePush(R.string.notification_broadcast_push)
-                AppAuth.getInstance().authStateFlow.value.id -> handlePush(R.string.notification_personal_push)
-                0L -> AppAuth.getInstance().sendPushToken()
-                else -> AppAuth.getInstance().sendPushToken()
+                appAuth.authStateFlow.value.id -> handlePush(R.string.notification_personal_push)
+                0L -> appAuth.sendPushToken()
+                else -> appAuth.sendPushToken()
             }
         }
 
         message.data[action]?.let {
-           when (Action.valueOf(it)) {
-              Action.LIKE -> handleLike(gson.fromJson(message.data[content], Like::class.java))
-           }
+            when (Action.valueOf(it)) {
+                Action.LIKE -> handleLike(gson.fromJson(message.data[content], Like::class.java))
+            }
         }
     }
 

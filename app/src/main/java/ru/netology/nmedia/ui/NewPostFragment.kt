@@ -1,4 +1,4 @@
-package ru.netology.nmedia.activity
+package ru.netology.nmedia.ui
 
 import android.app.Activity
 import android.os.Bundle
@@ -13,13 +13,18 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.github.dhaval2404.imagepicker.constant.ImageProvider
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import ru.netology.nmedia.R
+import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.databinding.FragmentNewPostBinding
 import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.util.AndroidUtils
 import ru.netology.nmedia.util.StringArg
 import ru.netology.nmedia.viewmodel.PostViewModel
 
+@AndroidEntryPoint
+@ExperimentalCoroutinesApi
 class NewPostFragment : Fragment() {
 
     companion object {
@@ -49,20 +54,25 @@ class NewPostFragment : Fragment() {
                         val uri = data?.data!!
                         val file = uri.toFile()
 
-                        viewModel.changePhoto(PhotoModel(uri,file))
+                        viewModel.changePhoto(PhotoModel(uri, file))
                     }
                     ImagePicker.RESULT_ERROR -> {
-                        Toast.makeText(requireContext(), ImagePicker.getError(data), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            requireContext(),
+                            ImagePicker.getError(data),
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                     else -> {
-                        Toast.makeText(requireContext(), "Task Cancelled", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "Task Cancelled", Toast.LENGTH_SHORT)
+                            .show()
                     }
                 }
             }
 
-        activity?.addMenuProvider(object: MenuProvider{
+        activity?.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menuInflater.inflate(R.menu.new_post_menu,menu)
+                menuInflater.inflate(R.menu.new_post_menu, menu)
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
@@ -76,34 +86,34 @@ class NewPostFragment : Fragment() {
                     else -> false
                 }
             }
-        },viewLifecycleOwner)
+        }, viewLifecycleOwner)
 
-        binding.pickPhoto.setOnClickListener{
+        binding.pickPhoto.setOnClickListener {
             ImagePicker.with(this)
                 .crop()
                 .compress(2048)
                 .provider(ImageProvider.GALLERY)
-                .galleryMimeTypes(arrayOf("image/png","image/jpeg",))
-                .createIntent (pickPhotoLauncher::launch)
+                .galleryMimeTypes(arrayOf("image/png", "image/jpeg"))
+                .createIntent(pickPhotoLauncher::launch)
         }
 
-        binding.takePhoto.setOnClickListener{
+        binding.takePhoto.setOnClickListener {
             ImagePicker.with(this)
                 .crop()
                 .compress(2048)
                 .galleryOnly()
-                .createIntent {  }
+                .createIntent { }
         }
 
         arguments?.textArg
             ?.let(binding.edit::setText)
 
 
-        binding.remove.setOnClickListener{
+        binding.remove.setOnClickListener {
             viewModel.changePhoto(null)
         }
 
-        viewModel.photoState.observe(viewLifecycleOwner){ photoState ->
+        viewModel.photoState.observe(viewLifecycleOwner) { photoState ->
             if (photoState == null) {
                 binding.photoPreviewContainer.isVisible = false
                 return@observe

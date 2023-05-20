@@ -19,9 +19,10 @@ data class PostEntity(
     val likes: Int = 0,
     val isNew: Boolean = true,
     @Embedded
-val attachment: Attachment?
+    val attachment: Attachment?
 ) {
-    fun toDto() = Post(id, author, authorAvatar, authorId, content, published, likedByMe, likes, attachment)
+    fun toDto() =
+        Post(id, author, authorAvatar, authorId, content, published, likedByMe, likes, attachment)
 
     companion object {
         fun fromDto(dto: Post) =
@@ -41,7 +42,7 @@ val attachment: Attachment?
         fun fromDtoInitial(dto: Post) =
             PostEntity(
                 id = dto.id,
-                author = dto.author, 
+                author = dto.author,
                 authorAvatar = dto.authorAvatar,
                 authorId = dto.authorId,
                 content = dto.content,
@@ -53,6 +54,7 @@ val attachment: Attachment?
             )
     }
 }
+
 fun List<PostEntity>.toDto(): List<Post> = map(PostEntity::toDto)
 fun List<Post>.toEntity(): List<PostEntity> = map(PostEntity::fromDto)
 fun List<Post>.toEntityInitial(): List<PostEntity> = map(PostEntity::fromDtoInitial)
