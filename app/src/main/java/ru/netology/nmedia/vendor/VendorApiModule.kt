@@ -14,12 +14,10 @@ import javax.inject.Singleton
 @Module
 class VendorModule {
 
-    @Singleton
     @Provides
     fun provideGoogleApiAvailability(
     ): GoogleApiAvailability = GoogleApiAvailability.getInstance()
 
-    @Singleton
     @Provides
     fun provideFirebase(
     ): FirebaseMessaging = FirebaseMessaging.getInstance()

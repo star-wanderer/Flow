@@ -1,4 +1,4 @@
-package ru.netology.nmedia.activity
+package ru.netology.nmedia.ui
 
 import android.content.Intent
 import android.os.Bundle
@@ -8,12 +8,14 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.paging.LoadState
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.collectLatest
 import ru.netology.nmedia.R
-import ru.netology.nmedia.activity.ViewPostFragment.Companion.ARG_POST_ID
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
@@ -36,15 +38,6 @@ class FeedFragment : Fragment() {
         val binding = FragmentFeedBinding.inflate(inflater, container, false)
 
         val adapter = PostsAdapter(object : OnInteractionListener {
-
-            override fun onPostImage(post: Post) {
-                findNavController().navigate(
-                    R.id.action_feedFragment_to_viewPostFragment,
-                    Bundle().apply {
-                        ARG_POST_ID = post.id.toString()
-                    }
-                )
-            }
 
             override fun onEdit(post: Post) {
                 viewModel.edit(post)
@@ -123,26 +116,24 @@ class FeedFragment : Fragment() {
             }
         }
 
-        viewModel.data.observe(viewLifecycleOwner) { state ->
-            adapter.submitList(state.posts)
-            binding.emptyText.isVisible = state.empty
-        }
-
-        viewModel.newerCount.observe(viewLifecycleOwner) { state ->
-            if (state != 0) {
-                binding.newPosts.text =
-                    context?.resources?.getString(R.string.new_post) + ":" + state
-                binding.newPosts.isVisible = true
+        lifecycleScope.launchWhenCreated {
+            viewModel.data.collectLatest {
+                adapter.submitData(it)
             }
-            println("Retrieved count: $state")
         }
 
-        viewModel.newerCount.observe(viewLifecycleOwner) { state ->
-            println("Cached count: $state")
+        lifecycleScope.launchWhenCreated {
+            adapter.loadStateFlow.collectLatest { state ->
+                binding.swiperefresh.isRefreshing =
+                    state.refresh is LoadState.Loading ||
+                    state.prepend is LoadState.Loading ||
+                    state.append is LoadState.Loading
+            }
         }
 
         binding.swiperefresh.setOnRefreshListener {
             viewModel.refreshPosts()
+            adapter.refresh()
         }
 
         binding.newPosts.setOnClickListener {
