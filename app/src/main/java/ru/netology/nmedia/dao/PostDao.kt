@@ -32,4 +32,15 @@ interface PostDao {
 
     @Query("UPDATE PostEntity SET isNew = 0 WHERE isNew = 1")
     suspend fun update()
+
+    @Query("SELECT * FROM PostEntity WHERE id < :id ORDER BY id DESC LIMIT :count")
+    suspend fun getBefore(
+        id: Long,
+        count: Int
+    ): List<PostEntity>
+
+    @Query("SELECT * FROM PostEntity ORDER BY id DESC LIMIT :count")
+    suspend fun getLatest(
+        count: Int
+    ): List<PostEntity>
 }
