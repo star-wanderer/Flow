@@ -11,7 +11,7 @@ import java.io.File
 interface PostRepository {
     val authData: LiveData<AuthModel>
     val data: Flow<PagingData<Post>>
-    suspend fun getAll()
+//    suspend fun getAll()
     fun getNewerCount(id: Long): Flow<Int>
     suspend fun save(post: Post)
     suspend fun removeById(id: Long)
