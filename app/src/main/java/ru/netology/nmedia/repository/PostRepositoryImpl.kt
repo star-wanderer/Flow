@@ -1,9 +1,7 @@
 package ru.netology.nmedia.repository
 
+import androidx.paging.*
 import androidx.lifecycle.*
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -11,12 +9,13 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.api.*
 import ru.netology.nmedia.dao.PostDao
+import ru.netology.nmedia.dao.PostRemoteKeyDao
+import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.AttachmentType
 import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
-import ru.netology.nmedia.entity.toDto
 import ru.netology.nmedia.entity.toEntity
 import ru.netology.nmedia.entity.toEntityInitial
 import ru.netology.nmedia.error.ApiError
@@ -27,15 +26,24 @@ import ru.netology.nmedia.model.AuthModel
 import java.io.File
 import java.io.IOException
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class PostRepositoryImpl @Inject constructor(
+    val db: AppDb,
     private val dao: PostDao,
+    val postRemoteKeyDao: PostRemoteKeyDao,
     private val apiService: ApiService,
 ) : PostRepository {
+
+    @OptIn(ExperimentalPagingApi::class)
     override val data: Flow<PagingData<Post>> = Pager(
-        config = PagingConfig(pageSize = 5, enablePlaceholders = false),
-        pagingSourceFactory = { PostPagingLocalSource(dao) }
-    ).flow
+        config = PagingConfig(pageSize = 5),
+        remoteMediator = PostRemoteMediator(apiService,db,dao,postRemoteKeyDao),
+        pagingSourceFactory = dao::pagingSource,
+    ).flow.map { pagingData->
+        pagingData.map(PostEntity::toDto)
+    }
 
     private val _authData = MutableLiveData<AuthModel>()
     override val authData: LiveData<AuthModel>
@@ -55,24 +63,24 @@ class PostRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getAll() {
-        try {
-            val response = apiService.getAll()
-            if (!response.isSuccessful) {
-                throw ApiError(response.code(), response.message())
-            }
-            val body = response.body() ?: throw ApiError(response.code(), response.message())
-            if (dao.isEmpty()) {
-                dao.insert(body.toEntityInitial())
-            } else {
-                dao.insert(body.toEntity())
-            }
-        } catch (e: IOException) {
-            throw NetworkError
-        } catch (e: Exception) {
-            throw UnknownError
-        }
-    }
+//    override suspend fun getAll() {
+//        try {
+//            val response = apiService.getAll()
+//            if (!response.isSuccessful) {
+//                throw ApiError(response.code(), response.message())
+//            }
+//            val body = response.body() ?: throw ApiError(response.code(), response.message())
+//            if (dao.isEmpty()) {
+//                dao.insert(body.toEntityInitial())
+//            } else {
+//                dao.insert(body.toEntity())
+//            }
+//        } catch (e: IOException) {
+//            throw NetworkError
+//        } catch (e: Exception) {
+//            throw UnknownError
+//        }
+//    }
 
     override suspend fun saveWithAttachment(file: File, post: Post) {
         try {

@@ -111,7 +111,8 @@ class FeedFragment : Fragment() {
             binding.swiperefresh.isRefreshing = state.refreshing
             if (state.error) {
                 Snackbar.make(binding.root, R.string.error_loading, Snackbar.LENGTH_LONG)
-                    .setAction(R.string.retry_loading) { viewModel.loadPosts() }
+//                    .setAction(R.string.retry_loading) { viewModel.loadPosts() }
+                    .setAction(R.string.retry_loading) { adapter.refresh() }
                     .show()
             }
         }
@@ -147,15 +148,15 @@ class FeedFragment : Fragment() {
         }
 
         binding.swiperefresh.setOnRefreshListener {
-            viewModel.refreshPosts()
+//            viewModel.refreshPosts()
             adapter.refresh()
         }
 
-        binding.newPosts.setOnClickListener {
-            viewModel.updatePosts()
-            binding.list.smoothScrollToPosition(0)
-            it.isVisible = false
-        }
+//        binding.newPosts.setOnClickListener {
+//            viewModel.updatePosts()
+//            binding.list.smoothScrollToPosition(0)
+//            it.isVisible = false
+//        }
 
         binding.fab.setOnClickListener {
             if (!authViewModel.isAuthorized) {
