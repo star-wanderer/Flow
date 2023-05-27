@@ -36,9 +36,11 @@ class PostRepositoryImpl @Inject constructor(
     private val apiService: ApiService,
 ) : PostRepository {
 
+    private val pageSize = 5
+
     @OptIn(ExperimentalPagingApi::class)
     override val data: Flow<PagingData<Post>> = Pager(
-        config = PagingConfig(pageSize = 5),
+        config = PagingConfig(pageSize),
         remoteMediator = PostRemoteMediator(apiService,db,dao,postRemoteKeyDao),
         pagingSourceFactory = dao::pagingSource,
     ).flow.map { pagingData->
@@ -63,24 +65,24 @@ class PostRepositoryImpl @Inject constructor(
         }
     }
 
-//    override suspend fun getAll() {
-//        try {
-//            val response = apiService.getAll()
-//            if (!response.isSuccessful) {
-//                throw ApiError(response.code(), response.message())
-//            }
-//            val body = response.body() ?: throw ApiError(response.code(), response.message())
-//            if (dao.isEmpty()) {
-//                dao.insert(body.toEntityInitial())
-//            } else {
-//                dao.insert(body.toEntity())
-//            }
-//        } catch (e: IOException) {
-//            throw NetworkError
-//        } catch (e: Exception) {
-//            throw UnknownError
-//        }
-//    }
+    override suspend fun getInitial() {
+        try {
+            val response = apiService.getLatest(pageSize)
+            if (!response.isSuccessful) {
+                throw ApiError(response.code(), response.message())
+            }
+            val body = response.body() ?: throw ApiError(response.code(), response.message())
+            if (dao.isEmpty()) {
+                dao.insert(body.toEntityInitial())
+            } else {
+                dao.insert(body.toEntity())
+            }
+        } catch (e: IOException) {
+            throw NetworkError
+        } catch (e: Exception) {
+            throw UnknownError
+        }
+    }
 
     override suspend fun saveWithAttachment(file: File, post: Post) {
         try {

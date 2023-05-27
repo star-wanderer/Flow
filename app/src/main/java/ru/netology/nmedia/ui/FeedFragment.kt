@@ -111,7 +111,6 @@ class FeedFragment : Fragment() {
             binding.swiperefresh.isRefreshing = state.refreshing
             if (state.error) {
                 Snackbar.make(binding.root, R.string.error_loading, Snackbar.LENGTH_LONG)
-//                    .setAction(R.string.retry_loading) { viewModel.loadPosts() }
                     .setAction(R.string.retry_loading) { adapter.refresh() }
                     .show()
             }
@@ -132,31 +131,9 @@ class FeedFragment : Fragment() {
             }
         }
 
-        lifecycleScope.launchWhenCreated {
-            viewModel.data.collectLatest {
-                adapter.submitData(it)
-            }
-        }
-
-        lifecycleScope.launchWhenCreated {
-            adapter.loadStateFlow.collectLatest { state ->
-                binding.swiperefresh.isRefreshing =
-                    state.refresh is LoadState.Loading ||
-                            state.prepend is LoadState.Loading ||
-                            state.append is LoadState.Loading
-            }
-        }
-
         binding.swiperefresh.setOnRefreshListener {
-//            viewModel.refreshPosts()
             adapter.refresh()
         }
-
-//        binding.newPosts.setOnClickListener {
-//            viewModel.updatePosts()
-//            binding.list.smoothScrollToPosition(0)
-//            it.isVisible = false
-//        }
 
         binding.fab.setOnClickListener {
             if (!authViewModel.isAuthorized) {
