@@ -4,13 +4,14 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.paging.PagingData
 import kotlinx.coroutines.flow.Flow
+import ru.netology.nmedia.dto.FeedItem
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.AuthModel
 import java.io.File
 
 interface PostRepository {
     val authData: LiveData<AuthModel>
-    val data: Flow<PagingData<Post>>
+    val data: Flow<PagingData<FeedItem>>
     suspend fun getInitial()
     fun getNewerCount(id: Long): Flow<Int>
     suspend fun save(post: Post)
