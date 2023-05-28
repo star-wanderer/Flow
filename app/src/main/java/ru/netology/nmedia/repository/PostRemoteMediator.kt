@@ -28,11 +28,10 @@ class PostRemoteMediator(
                     service.getLatest(state.config.initialLoadSize)
                 }
                 LoadType.PREPEND -> {
-                    return MediatorResult.Success(endOfPaginationReached = false)
-//                    service.getAfter(item.id, state.config.pageSize)
-//                    val item = state.firstItemOrNull() ?: return MediatorResult.Success(
-//                        endOfPaginationReached = false
-//                    )
+                    val item = state.firstItemOrNull() ?: return MediatorResult.Success(
+                        endOfPaginationReached = false
+                    )
+                    service.getAfter(item.id, state.config.pageSize)
                 }
                 LoadType.APPEND -> {
                     val item = state.lastItemOrNull() ?: return MediatorResult.Success(
@@ -49,26 +48,20 @@ class PostRemoteMediator(
         db.withTransaction {
             when(loadType){
                 LoadType.REFRESH-> {
-                    //postRemoteKeyDao.removeAll()
+                    postRemoteKeyDao.removeAll()
                     postRemoteKeyDao.insert(
-                        PostRemoteKeyEntity(
-                            type = PostRemoteKeyEntity.KeyType.AFTER,
-                            id = body.first().id
+                        listOf(
+                            PostRemoteKeyEntity(
+                                type = PostRemoteKeyEntity.KeyType.AFTER,
+                                id = body.first().id
+                            ),
+                            PostRemoteKeyEntity(
+                                type = PostRemoteKeyEntity.KeyType.BEFORE,
+                                id = body.last().id
+                            ),
                         )
                     )
-//                    postRemoteKeyDao.insert(
-//                        listOf(
-//                            PostRemoteKeyEntity(
-//                                type = PostRemoteKeyEntity.KeyType.AFTER,
-//                                id = body.first().id
-//                            ),
-//                            PostRemoteKeyEntity(
-//                                type = PostRemoteKeyEntity.KeyType.BEFORE,
-//                                id = body.last().id
-//                            )
-//                        )
-//                    )
-//                    postDao.removeAll()
+                    postDao.removeAll()
                 }
                 LoadType.PREPEND->{
                     postRemoteKeyDao.insert(

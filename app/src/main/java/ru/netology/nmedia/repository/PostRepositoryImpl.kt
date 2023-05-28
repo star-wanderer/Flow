@@ -11,10 +11,7 @@ import ru.netology.nmedia.api.*
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dao.PostRemoteKeyDao
 import ru.netology.nmedia.db.AppDb
-import ru.netology.nmedia.dto.Attachment
-import ru.netology.nmedia.dto.AttachmentType
-import ru.netology.nmedia.dto.Media
-import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.dto.*
 import ru.netology.nmedia.entity.PostEntity
 import ru.netology.nmedia.entity.toEntity
 import ru.netology.nmedia.entity.toEntityInitial
@@ -25,8 +22,10 @@ import ru.netology.nmedia.error.UnknownError
 import ru.netology.nmedia.model.AuthModel
 import java.io.File
 import java.io.IOException
+import java.util.Date
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.random.Random
 
 @Singleton
 class PostRepositoryImpl @Inject constructor(
@@ -36,13 +35,35 @@ class PostRepositoryImpl @Inject constructor(
     private val apiService: ApiService,
 ) : PostRepository {
 
+    private val pageSize = 5
+
     @OptIn(ExperimentalPagingApi::class)
-    override val data: Flow<PagingData<Post>> = Pager(
-        config = PagingConfig(pageSize = 5),
+    override val data: Flow<PagingData<FeedItem>> = Pager(
+        config = PagingConfig(pageSize),
         remoteMediator = PostRemoteMediator(apiService,db,dao,postRemoteKeyDao),
         pagingSourceFactory = dao::pagingSource,
     ).flow.map { pagingData->
         pagingData.map(PostEntity::toDto)
+            .insertSeparators(
+            generator = { before , after ->
+                val beforeTimeDiff = System.currentTimeMillis()/1000 - before?.published?.toLong()!!
+                val afterTimeDiff = System.currentTimeMillis()/1000 - after?.published?.toLong()!!
+                if ((afterTimeDiff in 1..86399998) && (beforeTimeDiff in 86399999 ..172800000))
+                    TextSeparator(
+                        Random.nextLong(),
+                        "TODAY")
+                if ((afterTimeDiff in 86399999 ..172800000) && (beforeTimeDiff >= 172800000))
+                    TextSeparator(
+                        Random.nextLong(),
+                        "YESTERDAY")
+                if   (afterTimeDiff >= 172800001)
+                    TextSeparator(
+                    Random.nextLong(),
+                    "LAST WEEK"
+                    )
+                else null
+            }
+        )
     }
 
     private val _authData = MutableLiveData<AuthModel>()
@@ -63,24 +84,24 @@ class PostRepositoryImpl @Inject constructor(
         }
     }
 
-//    override suspend fun getAll() {
-//        try {
-//            val response = apiService.getAll()
-//            if (!response.isSuccessful) {
-//                throw ApiError(response.code(), response.message())
-//            }
-//            val body = response.body() ?: throw ApiError(response.code(), response.message())
-//            if (dao.isEmpty()) {
-//                dao.insert(body.toEntityInitial())
-//            } else {
-//                dao.insert(body.toEntity())
-//            }
-//        } catch (e: IOException) {
-//            throw NetworkError
-//        } catch (e: Exception) {
-//            throw UnknownError
-//        }
-//    }
+    override suspend fun getInitial() {
+        try {
+            val response = apiService.getLatest(pageSize)
+            if (!response.isSuccessful) {
+                throw ApiError(response.code(), response.message())
+            }
+            val body = response.body() ?: throw ApiError(response.code(), response.message())
+            if (dao.isEmpty()) {
+                dao.insert(body.toEntityInitial())
+            } else {
+                dao.insert(body.toEntity())
+            }
+        } catch (e: IOException) {
+            throw NetworkError
+        } catch (e: Exception) {
+            throw UnknownError
+        }
+    }
 
     override suspend fun saveWithAttachment(file: File, post: Post) {
         try {
